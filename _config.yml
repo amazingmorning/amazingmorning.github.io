@@ -1,10 +1,10 @@
 # Site settings
-title: Your Blog
-SEOTitle: 你的博客 | Your Blog
+title: 神奇的早起
+SEOTitle: 早起 | 神奇的早起
 header-img: img/home-bg.jpg
-email: huxpro@gmail.com
-description: ""
-keyword: ""
+email: mjc1818@qq.com
+description: "爱理财的程序员"
+keyword: "程序员，量化，读书，早起，复盘"
 url: "https://amazingmorning.github.io"
 baseurl: ""
 
@@ -12,11 +12,8 @@ baseurl: ""
 
 # SNS settings
 RSS: false
-weibo_username:     huxpro
-zhihu_username:     huxpro
-github_username:    huxpro
-#twitter_username:  huxpro
-facebook_username:  huxpro
+wechat_username:     your_wechat_id
+github_username:     amazingmorning
 
 
 
