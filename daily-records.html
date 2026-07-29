@@ -1,157 +1,627 @@
 ---
-layout: page
+layout: default
 title: "每日记录"
 description: "记录每一天的健康生活"
 header-img: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=healthy%20lifestyle%20daily%20routine%20morning%20sunrise%20exercise%20minimalist%20clean&image_size=landscape_16_9"
+permalink: /daily-records.html
 ---
 
-<div class="post-container">
-
-## 📊 健康数据面板
-
-{% assign records = site.data.daily-records.records %}
-{% assign config = site.data.daily-records.config %}
-
-{% if records %}
-  {% assign latest = records | last %}
-  {% assign weights = records | map: 'weight' %}
-  {% assign start_weight = records | first | map: 'weight' %}
-  {% assign current_weight = latest.weight %}
-  {% assign total_days = records | size %}
+<div class="container" style="padding-top: 30px; padding-bottom: 50px;">
   
-  <div class="row">
-    <div class="col-md-3 text-center">
-      <div style="font-size: 2.5em; color: #e74c3c; font-weight: bold;">{{ current_weight }}</div>
-      <div style="color: #666;">当前体重 (kg)</div>
-    </div>
-    <div class="col-md-3 text-center">
-      <div style="font-size: 2.5em; color: #27ae60; font-weight: bold;">{{ total_days }}</div>
-      <div style="color: #666;">记录天数</div>
-    </div>
-    <div class="col-md-3 text-center">
-      <div style="font-size: 2.5em; color: #3498db; font-weight: bold;">{{ config.target_weight }}</div>
-      <div style="color: #666;">目标体重 (kg)</div>
-    </div>
-    <div class="col-md-3 text-center">
-      {% assign loss = start_weight | minus: current_weight %}
-      <div style="font-size: 2.5em; color: #f39c12; font-weight: bold;">{{ loss }}</div>
-      <div style="color: #666;">已减 (kg)</div>
-    </div>
-  </div>
-
-  <hr>
-
-## 📅 每日记录表格
-
-  <div class="table-responsive">
-    <table class="table table-striped table-hover">
-      <thead>
-        <tr>
-          <th>日期</th>
-          <th>早起</th>
-          <th>体重</th>
-          <th>读书</th>
-          <th>运动</th>
-          <th>心情</th>
-          <th>睡眠</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in records reversed %}
-        <tr>
-          <td>{{ r.date }}</td>
-          <td>
-            {{ r.wake_time }} 
-            {% if r.is_early %}<span style="color: green;">✅</span>{% else %}<span style="color: red;">❌</span>{% endif %}
-          </td>
-          <td><strong>{{ r.weight }}kg</strong></td>
-          <td>{{ r.reading }}</td>
-          <td>{{ r.exercise }}</td>
-          <td>
-            {% for i in (1..r.mood) %}😊{% endfor %}
-          </td>
-          <td>{{ r.sleep_hours }}h</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <hr>
-
-## 💡 最新记录
-
-  <div class="panel panel-success">
-    <div class="panel-heading">
-      <strong>{{ latest.date }}</strong>
-    </div>
-    <div class="panel-body">
-      <ul class="list-unstyled">
-        <li>⏰ 早起时间：{{ latest.wake_time }} 
-          {% if latest.is_early %}<span class="label label-success">达标</span>{% else %}<span class="label label-warning">未达标</span>{% endif %}
-        </li>
-        <li>⚖️ 体重：<strong>{{ latest.weight }} kg</strong></li>
-        <li>📚 读书：{{ latest.reading }}</li>
-        <li>🏃 运动：{{ latest.exercise }}</li>
-        <li>😊 心情：{% for i in (1..latest.mood) %}⭐{% endfor %}</li>
-        <li>😴 睡眠：{{ latest.sleep_hours }} 小时</li>
-        {% if latest.notes %}
-        <li>📝 备注：{{ latest.notes }}</li>
-        {% endif %}
-      </ul>
-    </div>
-  </div>
-
-  <hr>
-
-## 📈 体重变化
-
-  {% assign min_w = weights | min %}
-  {% assign max_w = weights | max %}
-  
-  <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; font-family: monospace; overflow-x: auto;">
-    <div style="margin-bottom: 10px; color: #666; font-family: sans-serif;">
-      体重范围: {{ min_w }}kg ~ {{ max_w }}kg
-    </div>
-    {% for r in records %}
-      {% assign w = r.weight %}
-      {% assign range = max_w | minus: min_w %}
-      {% assign normalized = w | minus: min_w | times: 40 | divided_by: default:range, 1 %}
-      <div style="white-space: nowrap;">
-        <span style="display: inline-block; width: 120px;">{{ r.date }}</span>
-        <span style="color: #e74c3c;">{% for i in (1..normalized) %}█{% endfor %}</span>
-        <span style="margin-left: 10px;">{{ w }}kg</span>
+  <!-- 统计面板 -->
+  <div class="row" style="margin-bottom: 30px;">
+    <div class="col-md-12">
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <h3 class="panel-title">📊 健康数据面板</h3>
+        </div>
+        <div class="panel-body">
+          <div class="row" id="statsPanel">
+            <div class="col-md-3 text-center">
+              <div style="font-size: 2.5em; color: #e74c3c; font-weight: bold;" id="statWeight">-</div>
+              <div style="color: #666;">当前体重 (kg)</div>
+            </div>
+            <div class="col-md-3 text-center">
+              <div style="font-size: 2.5em; color: #27ae60; font-weight: bold;" id="statDays">-</div>
+              <div style="color: #666;">记录天数</div>
+            </div>
+            <div class="col-md-3 text-center">
+              <div style="font-size: 2.5em; color: #3498db; font-weight: bold;" id="statTarget">-</div>
+              <div style="color: #666;">目标体重 (kg)</div>
+            </div>
+            <div class="col-md-3 text-center">
+              <div style="font-size: 2.5em; color: #f39c12; font-weight: bold;" id="statLoss">-</div>
+              <div style="color: #666;">已减 (kg)</div>
+            </div>
+          </div>
+        </div>
       </div>
-    {% endfor %}
+    </div>
   </div>
 
-{% else %}
-
-  <div class="alert alert-info">
-    <h4>📝 还没有记录</h4>
-    <p>请编辑 <code>_data/daily-records.yml</code> 文件添加你的每日记录。</p>
+  <!-- 添加记录表单 -->
+  <div class="row" style="margin-bottom: 30px;">
+    <div class="col-md-12">
+      <div class="panel panel-success">
+        <div class="panel-heading">
+          <h3 class="panel-title">➕ 添加今日记录</h3>
+        </div>
+        <div class="panel-body">
+          <form id="recordForm">
+            <div class="row">
+              <div class="col-md-2">
+                <div class="form-group">
+                  <label>📅 日期</label>
+                  <input type="date" class="form-control" id="inputDate" required>
+                </div>
+              </div>
+              <div class="col-md-2">
+                <div class="form-group">
+                  <label>⏰ 早起时间</label>
+                  <input type="time" class="form-control" id="inputWakeTime" value="06:00">
+                </div>
+              </div>
+              <div class="col-md-2">
+                <div class="form-group">
+                  <label>⚖️ 体重 (kg)</label>
+                  <input type="number" step="0.1" class="form-control" id="inputWeight" required placeholder="例如: 78.5">
+                </div>
+              </div>
+              <div class="col-md-2">
+                <div class="form-group">
+                  <label>😴 睡眠 (小时)</label>
+                  <input type="number" step="0.1" class="form-control" id="inputSleep" value="7">
+                </div>
+              </div>
+              <div class="col-md-2">
+                <div class="form-group">
+                  <label>😊 心情 (1-5)</label>
+                  <select class="form-control" id="inputMood">
+                    <option value="1">😞 1 - 很差</option>
+                    <option value="2">😐 2 - 较差</option>
+                    <option value="3" selected>😐 3 - 一般</option>
+                    <option value="4">😊 4 - 不错</option>
+                    <option value="5">😄 5 - 很好</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-2">
+                <div class="form-group">
+                  <label>✅ 早起达标</label>
+                  <div style="padding-top: 5px;">
+                    <label class="checkbox">
+                      <input type="checkbox" id="inputIsEarly"> 6点前起床
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label>📚 读书</label>
+                  <input type="text" class="form-control" id="inputReading" placeholder="书名或简述，如：《原则》">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label>🏃 运动</label>
+                  <input type="text" class="form-control" id="inputExercise" placeholder="运动类型和时长，如：晨跑5公里">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label>📝 备注</label>
+                  <input type="text" class="form-control" id="inputNotes" placeholder="其他说明">
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12 text-center">
+                <button type="submit" class="btn btn-primary btn-lg">💾 保存记录</button>
+                <button type="reset" class="btn btn-default btn-lg">🔄 重置</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 
-{% endif %}
+  <!-- 操作按钮 -->
+  <div class="row" style="margin-bottom: 20px;">
+    <div class="col-md-12 text-center">
+      <button class="btn btn-success" onclick="exportYAML()">📤 导出YAML</button>
+      <button class="btn btn-warning" onclick="document.getElementById('importFile').click()">📥 导入YAML</button>
+      <input type="file" id="importFile" accept=".yml,.yaml,.txt" style="display:none" onchange="importYAML(event)">
+      <button class="btn btn-info" onclick="generateDiary()">📖 生成日记</button>
+      <button class="btn btn-danger" onclick="clearAllData()">🗑️ 清空数据</button>
+    </div>
+  </div>
 
-## 🛠️ 如何添加记录？
+  <!-- 记录列表 -->
+  <div class="row">
+    <div class="col-md-12">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">📅 所有记录 <span class="badge" id="recordCount">0</span></h3>
+        </div>
+        <div class="panel-body">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover" id="recordsTable">
+              <thead>
+                <tr>
+                  <th>日期</th>
+                  <th>早起</th>
+                  <th>体重</th>
+                  <th>读书</th>
+                  <th>运动</th>
+                  <th>心情</th>
+                  <th>睡眠</th>
+                  <th>备注</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="recordsBody">
+                <tr><td colspan="9" class="text-center">暂无记录，请添加第一条！</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-1. 打开文件 <code>_data/daily-records.yml</code>
-2. 在 <code>records</code> 列表中添加新记录：
-
-```yaml
-  - date: 2026-07-30
-    wake_time: "05:30"
-    is_early: true
-    weight: 78.0
-    reading: "《原则》"
-    exercise: "晨跑5公里"
-    mood: 5
-    sleep_hours: 7.0
-    notes: "状态很好"
-```
-
-3. 运行 <code>python generate_diary.py</code> 生成博客文章
-4. 推送到 GitHub 即可
+  <!-- 使用说明 -->
+  <div class="row" style="margin-top: 30px;">
+    <div class="col-md-12">
+      <div class="alert alert-info">
+        <h4>💡 使用说明</h4>
+        <ul>
+          <li><strong>添加记录</strong>：填写表单后点击"保存记录"，数据保存在浏览器中</li>
+          <li><strong>导出数据</strong>：点击"导出YAML"下载数据文件，替换项目中的 <code>_data/daily-records.yml</code></li>
+          <li><strong>导入数据</strong>：点击"导入YAML"加载已导出的数据文件</li>
+          <li><strong>生成日记</strong>：点击"生成日记"下载生成的博客文章，替换 <code>_posts/</code> 中的减肥日记</li>
+          <li><strong>推送更新</strong>：将导出的YAML和生成的日记文件推送到GitHub即可</li>
+        </ul>
+        <p style="color: #d9534f;"><strong>⚠️ 注意</strong>：数据保存在浏览器localStorage中，清除浏览器数据会丢失记录，请及时导出备份！</p>
+      </div>
+    </div>
+  </div>
 
 </div>
+
+<script>
+// 数据存储键
+const STORAGE_KEY = 'daily_records';
+const CONFIG_KEY = 'daily_config';
+
+// 默认配置
+const defaultConfig = {
+  target_weight: 68.0,
+  start_weight: 81.0,
+  start_date: '2026-07-11',
+  early_time: '06:00'
+};
+
+// 加载数据
+function loadRecords() {
+  const data = localStorage.getItem(STORAGE_KEY);
+  return data ? JSON.parse(data) : [];
+}
+
+// 保存数据
+function saveRecords(records) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+}
+
+// 加载配置
+function loadConfig() {
+  const data = localStorage.getItem(CONFIG_KEY);
+  return data ? JSON.parse(data) : defaultConfig;
+}
+
+// 保存配置
+function saveConfig(config) {
+  localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+}
+
+// 渲染记录表格
+function renderRecords() {
+  const records = loadRecords();
+  const tbody = document.getElementById('recordsBody');
+  const count = document.getElementById('recordCount');
+  
+  count.textContent = records.length;
+  
+  if (records.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center">暂无记录，请添加第一条！</td></tr>';
+    return;
+  }
+  
+  // 按日期降序排列
+  const sorted = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  tbody.innerHTML = sorted.map(r => `
+    <tr>
+      <td><strong>${r.date}</strong></td>
+      <td>${r.wake_time} ${r.is_early ? '<span style="color:green;">✅</span>' : '<span style="color:red;">❌</span>'}</td>
+      <td>${r.weight}kg</td>
+      <td>${r.reading || '—'}</td>
+      <td>${r.exercise || '—'}</td>
+      <td>${'😊'.repeat(r.mood)}</td>
+      <td>${r.sleep_hours}h</td>
+      <td>${r.notes || '—'}</td>
+      <td>
+        <button class="btn btn-sm btn-danger" onclick="deleteRecord('${r.date}')">删除</button>
+      </td>
+    </tr>
+  `).join('');
+  
+  updateStats(records);
+}
+
+// 更新统计
+function updateStats(records) {
+  const config = loadConfig();
+  
+  if (records.length === 0) {
+    document.getElementById('statWeight').textContent = '-';
+    document.getElementById('statDays').textContent = '-';
+    document.getElementById('statTarget').textContent = config.target_weight;
+    document.getElementById('statLoss').textContent = '-';
+    return;
+  }
+  
+  const sorted = [...records].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const first = sorted[0];
+  const last = sorted[sorted.length - 1];
+  
+  document.getElementById('statWeight').textContent = last.weight;
+  document.getElementById('statDays').textContent = records.length;
+  document.getElementById('statTarget').textContent = config.target_weight;
+  document.getElementById('statLoss').textContent = (first.weight - last.weight).toFixed(1);
+}
+
+// 删除记录
+function deleteRecord(date) {
+  if (!confirm('确定删除 ' + date + ' 的记录吗？')) return;
+  
+  let records = loadRecords();
+  records = records.filter(r => r.date !== date);
+  saveRecords(records);
+  renderRecords();
+}
+
+// 表单提交
+document.getElementById('recordForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const record = {
+    date: document.getElementById('inputDate').value,
+    wake_time: document.getElementById('inputWakeTime').value,
+    is_early: document.getElementById('inputIsEarly').checked,
+    weight: parseFloat(document.getElementById('inputWeight').value),
+    reading: document.getElementById('inputReading').value || '—',
+    exercise: document.getElementById('inputExercise').value || '—',
+    mood: parseInt(document.getElementById('inputMood').value),
+    sleep_hours: parseFloat(document.getElementById('inputSleep').value),
+    notes: document.getElementById('inputNotes').value || '—'
+  };
+  
+  if (!record.date || isNaN(record.weight)) {
+    alert('请填写日期和体重！');
+    return;
+  }
+  
+  let records = loadRecords();
+  
+  // 检查是否已存在该日期
+  const existingIndex = records.findIndex(r => r.date === record.date);
+  if (existingIndex >= 0) {
+    if (!confirm('该日期已有记录，是否更新？')) return;
+    records[existingIndex] = record;
+  } else {
+    records.push(record);
+  }
+  
+  saveRecords(records);
+  renderRecords();
+  
+  // 重置表单
+  this.reset();
+  document.getElementById('inputDate').valueAsDate = new Date();
+  document.getElementById('inputIsEarly').checked = false;
+  
+  alert('✅ 记录保存成功！');
+});
+
+// 导出YAML
+function exportYAML() {
+  const records = loadRecords();
+  const config = loadConfig();
+  
+  if (records.length === 0) {
+    alert('没有记录可导出！');
+    return;
+  }
+  
+  // 按日期排序
+  const sorted = [...records].sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+  let yaml = '# 每日健康记录\n';
+  yaml += '# 由 https://amazingmorning.github.io/daily-records.html 生成\n';
+  yaml += 'records:\n';
+  
+  sorted.forEach(r => {
+    yaml += `  - date: ${r.date}\n`;
+    yaml += `    wake_time: "${r.wake_time}"\n`;
+    yaml += `    is_early: ${r.is_early}\n`;
+    yaml += `    weight: ${r.weight}\n`;
+    yaml += `    reading: "${r.reading}"\n`;
+    yaml += `    exercise: "${r.exercise}"\n`;
+    yaml += `    mood: ${r.mood}\n`;
+    yaml += `    sleep_hours: ${r.sleep_hours}\n`;
+    yaml += `    notes: "${r.notes}"\n\n`;
+  });
+  
+  yaml += '# 基础设置\n';
+  yaml += 'config:\n';
+  yaml += `  target_weight: ${config.target_weight}\n`;
+  yaml += `  start_weight: ${config.start_weight}\n`;
+  yaml += `  start_date: ${config.start_date}\n`;
+  yaml += `  early_time: "${config.early_time}"\n`;
+  
+  downloadFile(yaml, 'daily-records.yml', 'text/yaml');
+  alert('✅ 导出成功！请将此文件替换到项目的 _data/daily-records.yml');
+}
+
+// 导入YAML
+function importYAML(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const content = e.target.result;
+      const { records, config } = parseYAML(content);
+      
+      if (records.length === 0) {
+        alert('导入的文件中没有记录！');
+        return;
+      }
+      
+      if (confirm(`将导入 ${records.length} 条记录，是否替换当前数据？\n点击取消则合并数据。`)) {
+        saveRecords(records);
+      } else {
+        // 合并数据
+        const existing = loadRecords();
+        const allRecords = [...existing];
+        records.forEach(r => {
+          const idx = allRecords.findIndex(x => x.date === r.date);
+          if (idx >= 0) {
+            allRecords[idx] = r;
+          } else {
+            allRecords.push(r);
+          }
+        });
+        saveRecords(allRecords);
+      }
+      
+      if (config) saveConfig(config);
+      renderRecords();
+      alert('✅ 导入成功！');
+    } catch (err) {
+      alert('❌ 导入失败：' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// 简单的YAML解析器
+function parseYAML(content) {
+  const records = [];
+  const config = {};
+  let currentRecord = null;
+  let inRecords = false;
+  let inConfig = false;
+  let currentKey = null;
+  
+  const lines = content.split('\n');
+  
+  for (let line of lines) {
+    // 移除注释
+    const commentIndex = line.indexOf('#');
+    if (commentIndex !== -1) {
+      line = line.substring(0, commentIndex);
+    }
+    
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    
+    // 检测区块
+    if (trimmed === 'records:') {
+      inRecords = true;
+      inConfig = false;
+      continue;
+    }
+    if (trimmed === 'config:') {
+      inRecords = false;
+      inConfig = true;
+      currentRecord = null;
+      continue;
+    }
+    
+    // 解析记录
+    if (inRecords) {
+      const recordMatch = trimmed.match(/^-\s+date:\s*(.+)$/);
+      if (recordMatch) {
+        currentRecord = { date: recordMatch[1].trim() };
+        records.push(currentRecord);
+        continue;
+      }
+      
+      if (currentRecord) {
+        const kvMatch = trimmed.match(/^(\w+):\s*(.+)$/);
+        if (kvMatch) {
+          let key = kvMatch[1];
+          let value = kvMatch[2].trim();
+          
+          // 移除引号
+          if (value.startsWith('"') && value.endsWith('"')) {
+            value = value.slice(1, -1);
+          }
+          
+          // 类型转换
+          if (value === 'true') value = true;
+          else if (value === 'false') value = false;
+          else if (!isNaN(parseFloat(value))) {
+            value = parseFloat(value);
+          }
+          
+          currentRecord[key] = value;
+        }
+      }
+    }
+    
+    // 解析配置
+    if (inConfig) {
+      const kvMatch = trimmed.match(/^(\w+):\s*(.+)$/);
+      if (kvMatch) {
+        let key = kvMatch[1];
+        let value = kvMatch[2].trim();
+        if (value.startsWith('"') && value.endsWith('"')) {
+          value = value.slice(1, -1);
+        }
+        if (!isNaN(parseFloat(value))) {
+          value = parseFloat(value);
+        }
+        config[key] = value;
+      }
+    }
+  }
+  
+  return { records, config };
+}
+
+// 生成日记
+function generateDiary() {
+  const records = loadRecords();
+  const config = loadConfig();
+  
+  if (records.length === 0) {
+    alert('没有记录可生成！');
+    return;
+  }
+  
+  const sorted = [...records].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const latest = sorted[sorted.length - 1];
+  const first = sorted[0];
+  
+  const totalDays = records.length;
+  const startWeight = first.weight;
+  const currentWeight = latest.weight;
+  const totalLoss = (startWeight - currentWeight).toFixed(1);
+  const remaining = (currentWeight - config.target_weight).toFixed(1);
+  const earlyCount = records.filter(r => r.is_early).length;
+  const earlyRate = ((earlyCount / totalDays) * 100).toFixed(1);
+  
+  // 副标题
+  const subtitle = totalLoss > 0 
+    ? `已减 ${totalLoss}kg，目标 ${config.target_weight}kg`
+    : `当前体重 ${currentWeight}kg`;
+  
+  // 生成Markdown
+  let md = `---
+layout:     post
+title:      "减肥日记"
+subtitle:   "${subtitle}"
+date:       ${new Date().toISOString().replace('T', ' ').substring(0, 19)}
+author:     "Me"
+header-img: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=healthy%20lifestyle%20morning%20exercise%20minimalist%20clean%20background%20fitness%20wellness&image_size=landscape_16_9"
+tags:
+    - Life
+    - 减肥
+---
+
+## 📊 统计概览
+
+| 指标 | 数值 |
+|------|------|
+| 开始日期 | ${config.start_date} |
+| 记录天数 | ${totalDays} 天 |
+| 早起次数 | ${earlyCount} 次（率 ${earlyRate}%） |
+| 起始体重 | ${startWeight} kg |
+| 当前体重 | ${currentWeight} kg |
+| 目标体重 | ${config.target_weight} kg |
+| 已减重量 | ${totalLoss} kg |
+| 剩余目标 | ${remaining} kg |
+
+## 📅 每日记录
+
+| 日期 | 早起 | 体重 | 读书 | 运动 | 心情 | 睡眠 |
+|---|---|---|---|---|---|---|
+`;
+  
+  sorted.forEach(r => {
+    const wakeIcon = r.is_early ? '✅' : '❌';
+    const moodStr = '😊'.repeat(r.mood);
+    md += `| ${r.date} | ${r.wake_time} ${wakeIcon} | ${r.weight}kg | ${r.reading} | ${r.exercise} | ${moodStr} | ${r.sleep_hours}h |\n`;
+  });
+  
+  md += `
+## 💡 最新记录 (${latest.date})
+
+- **早起时间**：${latest.wake_time} ${latest.is_early ? '✅ 早起成功' : '⏰ 未达标'}
+- **体重**：${latest.weight} kg
+- **读书**：${latest.reading}
+- **运动**：${latest.exercise}
+- **心情**：${'😊'.repeat(latest.mood)}
+- **睡眠**：${latest.sleep_hours} 小时
+- **备注**：${latest.notes}
+
+---
+
+*本文档由 [每日记录页面](https://amazingmorning.github.io/daily-records.html) 自动生成于 ${new Date().toLocaleString('zh-CN')}*
+`;
+  
+  const filename = `${latest.date}-减肥日记.md`;
+  downloadFile(md, filename, 'text/markdown');
+  alert(`✅ 日记已生成！请将文件 "${filename}" 放到 _posts/ 目录并推送到GitHub。`);
+}
+
+// 清空数据
+function clearAllData() {
+  if (!confirm('⚠️ 确定清空所有记录吗？此操作不可恢复！')) return;
+  if (!confirm('再次确认：真的要删除所有数据吗？')) return;
+  
+  localStorage.removeItem(STORAGE_KEY);
+  renderRecords();
+  alert('✅ 数据已清空');
+}
+
+// 下载文件
+function downloadFile(content, filename, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// 初始化
+document.addEventListener('DOMContentLoaded', function() {
+  // 设置今天的日期
+  const today = new Date();
+  document.getElementById('inputDate').valueAsDate = today;
+  
+  // 渲染记录
+  renderRecords();
+});
+</script>
