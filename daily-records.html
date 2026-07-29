@@ -1,0 +1,157 @@
+---
+layout: page
+title: "每日记录"
+description: "记录每一天的健康生活"
+header-img: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=healthy%20lifestyle%20daily%20routine%20morning%20sunrise%20exercise%20minimalist%20clean&image_size=landscape_16_9"
+---
+
+<div class="post-container">
+
+## 📊 健康数据面板
+
+{% assign records = site.data.daily-records.records %}
+{% assign config = site.data.daily-records.config %}
+
+{% if records %}
+  {% assign latest = records | last %}
+  {% assign weights = records | map: 'weight' %}
+  {% assign start_weight = records | first | map: 'weight' %}
+  {% assign current_weight = latest.weight %}
+  {% assign total_days = records | size %}
+  
+  <div class="row">
+    <div class="col-md-3 text-center">
+      <div style="font-size: 2.5em; color: #e74c3c; font-weight: bold;">{{ current_weight }}</div>
+      <div style="color: #666;">当前体重 (kg)</div>
+    </div>
+    <div class="col-md-3 text-center">
+      <div style="font-size: 2.5em; color: #27ae60; font-weight: bold;">{{ total_days }}</div>
+      <div style="color: #666;">记录天数</div>
+    </div>
+    <div class="col-md-3 text-center">
+      <div style="font-size: 2.5em; color: #3498db; font-weight: bold;">{{ config.target_weight }}</div>
+      <div style="color: #666;">目标体重 (kg)</div>
+    </div>
+    <div class="col-md-3 text-center">
+      {% assign loss = start_weight | minus: current_weight %}
+      <div style="font-size: 2.5em; color: #f39c12; font-weight: bold;">{{ loss }}</div>
+      <div style="color: #666;">已减 (kg)</div>
+    </div>
+  </div>
+
+  <hr>
+
+## 📅 每日记录表格
+
+  <div class="table-responsive">
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>日期</th>
+          <th>早起</th>
+          <th>体重</th>
+          <th>读书</th>
+          <th>运动</th>
+          <th>心情</th>
+          <th>睡眠</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in records reversed %}
+        <tr>
+          <td>{{ r.date }}</td>
+          <td>
+            {{ r.wake_time }} 
+            {% if r.is_early %}<span style="color: green;">✅</span>{% else %}<span style="color: red;">❌</span>{% endif %}
+          </td>
+          <td><strong>{{ r.weight }}kg</strong></td>
+          <td>{{ r.reading }}</td>
+          <td>{{ r.exercise }}</td>
+          <td>
+            {% for i in (1..r.mood) %}😊{% endfor %}
+          </td>
+          <td>{{ r.sleep_hours }}h</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+## 💡 最新记录
+
+  <div class="panel panel-success">
+    <div class="panel-heading">
+      <strong>{{ latest.date }}</strong>
+    </div>
+    <div class="panel-body">
+      <ul class="list-unstyled">
+        <li>⏰ 早起时间：{{ latest.wake_time }} 
+          {% if latest.is_early %}<span class="label label-success">达标</span>{% else %}<span class="label label-warning">未达标</span>{% endif %}
+        </li>
+        <li>⚖️ 体重：<strong>{{ latest.weight }} kg</strong></li>
+        <li>📚 读书：{{ latest.reading }}</li>
+        <li>🏃 运动：{{ latest.exercise }}</li>
+        <li>😊 心情：{% for i in (1..latest.mood) %}⭐{% endfor %}</li>
+        <li>😴 睡眠：{{ latest.sleep_hours }} 小时</li>
+        {% if latest.notes %}
+        <li>📝 备注：{{ latest.notes }}</li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+
+  <hr>
+
+## 📈 体重变化
+
+  {% assign min_w = weights | min %}
+  {% assign max_w = weights | max %}
+  
+  <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; font-family: monospace; overflow-x: auto;">
+    <div style="margin-bottom: 10px; color: #666; font-family: sans-serif;">
+      体重范围: {{ min_w }}kg ~ {{ max_w }}kg
+    </div>
+    {% for r in records %}
+      {% assign w = r.weight %}
+      {% assign range = max_w | minus: min_w %}
+      {% assign normalized = w | minus: min_w | times: 40 | divided_by: default:range, 1 %}
+      <div style="white-space: nowrap;">
+        <span style="display: inline-block; width: 120px;">{{ r.date }}</span>
+        <span style="color: #e74c3c;">{% for i in (1..normalized) %}█{% endfor %}</span>
+        <span style="margin-left: 10px;">{{ w }}kg</span>
+      </div>
+    {% endfor %}
+  </div>
+
+{% else %}
+
+  <div class="alert alert-info">
+    <h4>📝 还没有记录</h4>
+    <p>请编辑 <code>_data/daily-records.yml</code> 文件添加你的每日记录。</p>
+  </div>
+
+{% endif %}
+
+## 🛠️ 如何添加记录？
+
+1. 打开文件 <code>_data/daily-records.yml</code>
+2. 在 <code>records</code> 列表中添加新记录：
+
+```yaml
+  - date: 2026-07-30
+    wake_time: "05:30"
+    is_early: true
+    weight: 78.0
+    reading: "《原则》"
+    exercise: "晨跑5公里"
+    mood: 5
+    sleep_hours: 7.0
+    notes: "状态很好"
+```
+
+3. 运行 <code>python generate_diary.py</code> 生成博客文章
+4. 推送到 GitHub 即可
+
+</div>

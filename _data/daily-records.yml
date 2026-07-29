@@ -1,0 +1,120 @@
+# 每日健康记录
+# 每天填写一条，用于自动生成减肥日记
+# 格式说明：
+#   date: 日期 (YYYY-MM-DD)
+#   wake_time: 早起时间 (HH:MM)
+#   is_early: 是否早起 (true/false, 标准为6:00前)
+#   weight: 体重 (kg)
+#   reading: 读书 (书名或简述)
+#   exercise: 运动 (类型和时长)
+#   mood: 心情 (1-5)
+#   sleep_hours: 睡眠时长
+#   notes: 备注
+
+records:
+  - date: 2026-07-11
+    wake_time: "05:30"
+    is_early: true
+    weight: 81.0
+    reading: "—"
+    exercise: "轻断食一天"
+    mood: 4
+    sleep_hours: 6.5
+    notes: "轻断食一天，只喝液体，不吃任何食物。"
+
+  - date: 2026-07-12
+    wake_time: "06:00"
+    is_early: true
+    weight: 80.5
+    reading: "《原则》"
+    exercise: "跑步30分钟"
+    mood: 5
+    sleep_hours: 7.0
+    notes: "跑步感觉不错"
+
+  - date: 2026-07-13
+    wake_time: "07:30"
+    is_early: false
+    weight: 80.8
+    reading: "—"
+    exercise: "休息"
+    mood: 3
+    sleep_hours: 8.0
+    notes: "周末补觉"
+
+  - date: 2026-07-14
+    wake_time: "05:45"
+    is_early: true
+    weight: 80.2
+    reading: "《原则》"
+    exercise: "健身房1小时"
+    mood: 4
+    sleep_hours: 6.5
+    notes: "—"
+
+  - date: 2026-07-15
+    wake_time: "05:20"
+    is_early: true
+    weight: 79.8
+    reading: "《深度工作》"
+    exercise: "游泳40分钟"
+    mood: 5
+    sleep_hours: 7.5
+    notes: "游泳效果很好"
+
+  - date: 2026-07-16
+    wake_time: "06:15"
+    is_early: true
+    weight: 79.5
+    reading: "—"
+    exercise: "快走45分钟"
+    mood: 4
+    sleep_hours: 7.0
+    notes: "—"
+
+  - date: 2026-07-17
+    wake_time: "05:50"
+    is_early: true
+    weight: 79.2
+    reading: "《深度工作》"
+    exercise: "瑜伽30分钟"
+    mood: 4
+    sleep_hours: 7.0
+    notes: "—"
+
+  - date: 2026-07-18
+    wake_time: "08:00"
+    is_early: false
+    weight: 79.5
+    reading: "—"
+    exercise: "休息"
+    mood: 3
+    sleep_hours: 8.5
+    notes: "周六睡懒觉"
+
+  - date: 2026-07-19
+    wake_time: "07:00"
+    is_early: false
+    weight: 79.0
+    reading: "《原则》"
+    exercise: "骑行1小时"
+    mood: 5
+    sleep_hours: 7.5
+    notes: "—"
+
+  - date: 2026-07-20
+    wake_time: "05:30"
+    is_early: true
+    weight: 78.5
+    reading: "《原则》"
+    exercise: "晨跑5公里"
+    mood: 5
+    sleep_hours: 7.0
+    notes: "状态很好"
+
+# 基础设置
+config:
+  target_weight: 68.0
+  start_weight: 81.0
+  start_date: 2026-07-11
+  early_time: "06:00"
