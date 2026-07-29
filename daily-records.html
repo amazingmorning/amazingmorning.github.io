@@ -22,8 +22,8 @@ permalink: /daily-records.html
               <div style="color: #666;">当前体重 (kg)</div>
             </div>
             <div class="col-md-3 text-center">
-              <div style="font-size: 2.5em; color: #27ae60; font-weight: bold;" id="statDays">-</div>
-              <div style="color: #666;">记录天数</div>
+              <div style="font-size: 2.5em; color: #9b59b6; font-weight: bold;" id="statEarlyDays">-</div>
+              <div style="color: #666;">早起累计天数</div>
             </div>
             <div class="col-md-3 text-center">
               <div style="font-size: 2.5em; color: #3498db; font-weight: bold;" id="statTarget">-</div>
@@ -69,12 +69,6 @@ permalink: /daily-records.html
               </div>
               <div class="col-md-2">
                 <div class="form-group">
-                  <label>😴 睡眠 (小时)</label>
-                  <input type="number" step="0.1" class="form-control" id="inputSleep" value="7">
-                </div>
-              </div>
-              <div class="col-md-2">
-                <div class="form-group">
                   <label>😊 心情 (1-5)</label>
                   <select class="form-control" id="inputMood">
                     <option value="1">😞 1 - 很差</option>
@@ -92,6 +86,15 @@ permalink: /daily-records.html
                     <label class="checkbox">
                       <input type="checkbox" id="inputIsEarly"> 6点前起床
                     </label>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-2">
+                <div class="form-group">
+                  <label>📖 记录天数</label>
+                  <div style="padding-top: 5px; text-align: center;">
+                    <span id="totalDaysDisplay" style="font-size: 1.5em; color: #27ae60; font-weight: bold;">0</span>
+                    <span style="color: #666;">天</span>
                   </div>
                 </div>
               </div>
@@ -157,13 +160,12 @@ permalink: /daily-records.html
                   <th>读书</th>
                   <th>运动</th>
                   <th>心情</th>
-                  <th>睡眠</th>
                   <th>备注</th>
                   <th>操作</th>
                 </tr>
               </thead>
               <tbody id="recordsBody">
-                <tr><td colspan="9" class="text-center">暂无记录，请添加第一条！</td></tr>
+                <tr><td colspan="8" class="text-center">暂无记录，请添加第一条！</td></tr>
               </tbody>
             </table>
           </div>
@@ -235,7 +237,7 @@ function renderRecords() {
   count.textContent = records.length;
   
   if (records.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" class="text-center">暂无记录，请添加第一条！</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center">暂无记录，请添加第一条！</td></tr>';
     return;
   }
   
@@ -250,7 +252,6 @@ function renderRecords() {
       <td>${r.reading || '—'}</td>
       <td>${r.exercise || '—'}</td>
       <td>${'😊'.repeat(r.mood)}</td>
-      <td>${r.sleep_hours}h</td>
       <td>${r.notes || '—'}</td>
       <td>
         <button class="btn btn-sm btn-danger" onclick="deleteRecord('${r.date}')">删除</button>
@@ -267,9 +268,10 @@ function updateStats(records) {
   
   if (records.length === 0) {
     document.getElementById('statWeight').textContent = '-';
-    document.getElementById('statDays').textContent = '-';
+    document.getElementById('statEarlyDays').textContent = '-';
     document.getElementById('statTarget').textContent = config.target_weight;
     document.getElementById('statLoss').textContent = '-';
+    document.getElementById('totalDaysDisplay').textContent = '0';
     return;
   }
   
@@ -277,10 +279,17 @@ function updateStats(records) {
   const first = sorted[0];
   const last = sorted[sorted.length - 1];
   
+  // 计算累计早起天数
+  let earlyDays = 0;
+  records.forEach(r => {
+    if (r.is_early) earlyDays++;
+  });
+  
   document.getElementById('statWeight').textContent = last.weight;
-  document.getElementById('statDays').textContent = records.length;
+  document.getElementById('statEarlyDays').textContent = earlyDays;
   document.getElementById('statTarget').textContent = config.target_weight;
   document.getElementById('statLoss').textContent = (first.weight - last.weight).toFixed(1);
+  document.getElementById('totalDaysDisplay').textContent = records.length;
 }
 
 // 删除记录
@@ -305,7 +314,6 @@ document.getElementById('recordForm').addEventListener('submit', function(e) {
     reading: document.getElementById('inputReading').value || '—',
     exercise: document.getElementById('inputExercise').value || '—',
     mood: parseInt(document.getElementById('inputMood').value),
-    sleep_hours: parseFloat(document.getElementById('inputSleep').value),
     notes: document.getElementById('inputNotes').value || '—'
   };
   
@@ -361,7 +369,6 @@ function exportYAML() {
     yaml += `    reading: "${r.reading}"\n`;
     yaml += `    exercise: "${r.exercise}"\n`;
     yaml += `    mood: ${r.mood}\n`;
-    yaml += `    sleep_hours: ${r.sleep_hours}\n`;
     yaml += `    notes: "${r.notes}"\n\n`;
   });
   
@@ -552,7 +559,8 @@ tags:
 |------|------|
 | 开始日期 | ${config.start_date} |
 | 记录天数 | ${totalDays} 天 |
-| 早起次数 | ${earlyCount} 次（率 ${earlyRate}%） |
+| 早起累计 | ${earlyCount} 天 |
+| 早起率 | ${earlyRate}% |
 | 起始体重 | ${startWeight} kg |
 | 当前体重 | ${currentWeight} kg |
 | 目标体重 | ${config.target_weight} kg |
@@ -561,14 +569,14 @@ tags:
 
 ## 📅 每日记录
 
-| 日期 | 早起 | 体重 | 读书 | 运动 | 心情 | 睡眠 |
-|---|---|---|---|---|---|---|
+| 日期 | 早起 | 体重 | 读书 | 运动 | 心情 |
+|---|---|---|---|---|---|
 `;
   
   sorted.forEach(r => {
     const wakeIcon = r.is_early ? '✅' : '❌';
     const moodStr = '😊'.repeat(r.mood);
-    md += `| ${r.date} | ${r.wake_time} ${wakeIcon} | ${r.weight}kg | ${r.reading} | ${r.exercise} | ${moodStr} | ${r.sleep_hours}h |\n`;
+    md += `| ${r.date} | ${r.wake_time} ${wakeIcon} | ${r.weight}kg | ${r.reading} | ${r.exercise} | ${moodStr} |\n`;
   });
   
   md += `
@@ -579,7 +587,6 @@ tags:
 - **读书**：${latest.reading}
 - **运动**：${latest.exercise}
 - **心情**：${'😊'.repeat(latest.mood)}
-- **睡眠**：${latest.sleep_hours} 小时
 - **备注**：${latest.notes}
 
 ---
